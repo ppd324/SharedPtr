@@ -17,9 +17,9 @@ public:
         std::cout<<"copy construct called"<<std::endl;
         (*m_use).fetch_add(1,std::memory_order_relaxed);
     }
-    SharedPtr<T>& operator= (const SharedPtr<T> &s) {
+    void operator= (const SharedPtr<T> &s) {
         if(this->m_ptr == s.m_ptr) {
-            return *this;
+            return;
         }
         if(this->m_ptr) {
             (*(this->m_use)).fetch_sub(1,std::memory_order_relaxed);
@@ -29,9 +29,8 @@ public:
             }
         }
         this->m_ptr = s.m_ptr;
-        this->m_use = m_use;
-        (*m_use).fetch_add(1,std::memory_order_relaxed);
-        return *this;
+        this->m_use = s.m_use;
+        (*(this->m_use)).fetch_add(1,std::memory_order_relaxed);
     }
     SharedPtr(const SharedPtr<T> &&s) {
         *this = std::move(s);

@@ -14,7 +14,7 @@ int main() {
     }
     std::cout<<"p2:"<<ptr.use_count()<<std::endl;
     ptr = SharedPtr<int> (new int(5));
-    std::cout<<"=============================="<<std::endl;
+    /*std::cout<<"==============================thread test"<<std::endl;
     {
         SharedPtr<int> p1(ptr);
         std::cout<<"p1:"<<p1.use_count()<<std::endl;
@@ -38,6 +38,9 @@ int main() {
     std::cout<<"main thread use_count is:"<<ptr.use_count()<<std::endl;
     for(int i=0;i<10;++i) {
         threadArray[i].join();
-    }
+    }*/
+    SharedPtr<int> p4(new int(7));
+    ptr = p4;
+    std::cout<<*ptr<<std::endl;
     return 0;
 }
