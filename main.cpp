@@ -23,14 +23,21 @@ int main() {
         std::cout<<"p2:"<<p2.use_count()<<std::endl;
         std::cout<<"ptr use_count:"<<ptr.use_count()<<std::endl;
     }
-    thread t1([&](SharedPtr<int> &s) {
+    thread threadArray[10];
+    for(int i=0;i<10;++i) {
+        threadArray[i] = thread([&](SharedPtr<int> &s) {
             SharedPtr<int> p3(s);
-            std::cout<<"thread :: "<<*p3<<std::endl;
+            std::cout<<"thread::"<<"ID:"<<std::this_thread::get_id()<<" "<<*p3<<std::endl;
             std::cout<<"p use_count:"<<p3.use_count()<<std::endl;
             std::this_thread::sleep_for(std::chrono::seconds(10));
-    },std::ref(ptr));
+        },std::ref(ptr));
+    }
     std::cout<<"ptr use_count:"<<ptr.use_count()<<std::endl;
     std::cout<<*ptr<<std::endl;
-    t1.join();
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    std::cout<<"main thread use_count is:"<<ptr.use_count()<<std::endl;
+    for(int i=0;i<10;++i) {
+        threadArray[i].join();
+    }
     return 0;
 }

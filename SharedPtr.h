@@ -12,17 +12,17 @@ using std::atomic;
 template<typename T>
 class SharedPtr {
 public:
-    SharedPtr(T *ptr = nullptr):m_ptr(ptr),m_use(new atomic<long>(0)){ if(ptr) {(*m_use)++;}}
+    SharedPtr(T *ptr = nullptr):m_ptr(ptr),m_use(new atomic<long>(0)){ if(ptr) {(*m_use).fetch_add(1,std::memory_order_relaxed);}}
     SharedPtr(const SharedPtr<T> &s):m_ptr(s.m_ptr),m_use(s.m_use){
         std::cout<<"copy construct called"<<std::endl;
-        (*m_use)++;
+        (*m_use).fetch_add(1,std::memory_order_relaxed);
     }
     SharedPtr<T>& operator= (const SharedPtr<T> &s) {
         if(this->m_ptr == s.m_ptr) {
             return *this;
         }
         if(this->m_ptr) {
-            *(this->m_use)--;
+            (*(this->m_use)).fetch_sub(1,std::memory_order_relaxed);
             if(*(this->m_use) == 0) {
                 delete this->m_ptr;
                 delete this->m_use;
@@ -30,7 +30,7 @@ public:
         }
         this->m_ptr = s.m_ptr;
         this->m_use = m_use;
-        (*this->m_use)++;
+        (*m_use).fetch_add(1,std::memory_order_relaxed);
         return *this;
     }
     SharedPtr(const SharedPtr<T> &&s) {
@@ -42,7 +42,7 @@ public:
             return;
         }
         if(this->m_ptr) {
-            (*(this->m_use))--;
+            (*(this->m_use)).fetch_sub(1,std::memory_order_relaxed);
             if(*(this->m_use) == 0) {
                 delete this->m_ptr;
                 delete this->m_use;
@@ -64,13 +64,13 @@ public:
 
     }
     long use_count() {
-        return *m_use;
+        return std::atomic_load(m_use);
 
     }
     ~SharedPtr() {
         std::cout<<"deconstruct be called"<<std::endl;
         if(m_use && m_ptr) {
-            --(*m_use);
+            (*(this->m_use)).fetch_sub(1,std::memory_order_relaxed);
             if((*m_use) == 0) {
                 delete m_use;
                 m_use = nullptr;
